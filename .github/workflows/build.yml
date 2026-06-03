@@ -1,0 +1,57 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 设置 Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 安装依赖
+        run: npm install
+
+      - name: 创建 www 目录并复制 HTML 文件
+        run: |
+          mkdir -p www
+          cp "鸡爪调料计算器.html" www/index.html
+          cp *.css www/ 2>/dev/null || true
+          cp *.js www/ 2>/dev/null || true
+          cp -r assets www/ 2>/dev/null || true
+          cp -r images www/ 2>/dev/null || true
+
+      - name: 初始化 Capacitor Android
+        run: npx cap add android
+
+      - name: 同步文件到 Android
+        run: npx cap sync android
+
+      - name: 赋予 gradlew 执行权限
+        run: chmod +x android/gradlew
+
+      - name: 构建 Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
