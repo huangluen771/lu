@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鸡爪调味料计算器</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Heiti SC", sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            padding-top: 40px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            width: 90%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        .fix-charset {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #e74c3c;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+        }
+        input:focus {
+            border-color: #ff6b6b;
+        }
+        button.calc-btn {
+            padding: 12px 20px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+        button.calc-btn:hover {
+            background-color: #ee5253;
+        }
+        .result-box {
+            background-color: #fafafa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #eee;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        /* 分类标题样式 */
+        .category-title {
+            font-size: 14px;
+            color: #888;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .category-title:first-child {
+            margin-top: 0;
+        }
+        .result-item {
+            padding: 8px 0;
+            color: #555;
+            font-size: 16px;
+        }
+        .result-item span.val {
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-left: 6px;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #aaa;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>鸡爪调味料计算器</h2>
+    
+    <div class="fix-charset" onclick="fixCharset()">如果文字乱码点击这里修复</div>
+
+    <div class="input-group">
+        <input type="number" id="jinInput" placeholder="请输入鸡爪斤数 (例如: 10)">
+        <button class="calc-btn" onclick="calculate()">计算用量</button>
+    </div>
+
+    <div class="result-box" id="resultArea">
+        <div class="empty-msg">请输入鸡爪斤数并点击计算</div>
+    </div>
+</div>
+
+<script>
+    // 基础数据：这是 5斤鸡爪 对应的各项调味料用量
+    // category 用于在页面上分组显示，unit 代表单位（克或个）
+    const baseData = [
+        // 基础粉类/酱类
+        { name: "盐", amount: 56.25, category: "基础调料", unit: "克" },
+        { name: "味精", amount: 22.5, category: "基础调料", unit: "克" },
+        { name: "鸡精", amount: 20, category: "基础调料", unit: "克" },
+        { name: "白糖", amount: 32.5, category: "基础调料", unit: "克" },
+        { name: "生抽", amount: 25, category: "基础调料", unit: "克" },
+        { name: "老抽", amount: 68.75, category: "基础调料", unit: "克" },
+        { name: "耗油", amount: 87.5, category: "基础调料", unit: "克" },
+        { name: "甜辣酱", amount: 150, category: "基础调料", unit: "克" },
+        
+        // 液体/汁水类
+        { name: "辣鲜露", amount: 75, category: "液体/酱汁", unit: "克" },
+        { name: "捞汁", amount: 75, category: "液体/酱汁", unit: "克" },
+        { name: "白醋", amount: 275, category: "液体/酱汁", unit: "克" },
+        { name: "雪碧", amount: 362.5, category: "液体/酱汁", unit: "克" },
+        { name: "苹果醋", amount: 50, category: "液体/酱汁", unit: "克" },
+        { name: "泡椒水", amount: 62.5, category: "液体/酱汁", unit: "克" },
+        { name: "凉白开水", amount: 587.5, category: "液体/酱汁", unit: "克" },
+        
+        // 其他特殊辅料
+        { name: "泡椒", amount: 10, category: "其他辅料", unit: "个" },
+        { name: "另外拿碗装生水", amount: 562.5, category: "其他辅料", unit: "克" },
+        { name: "取点生水兑木薯淀粉", amount: 26.25, category: "其他辅料", unit: "克" },
+        { name: "蒜末一把约", amount: 50, category: "其他辅料", unit: "克" }
+    ];
+
+    function fixCharset() {
+        document.charset = 'UTF-8';
+        alert('已尝试切换为 UTF-8 编码。');
+        location.reload();
+    }
+
+    function calculate() {
+        const jinVal = document.getElementById('jinInput').value;
+        const resultArea = document.getElementById('resultArea');
+
+        if (!jinVal || parseFloat(jinVal) <= 0) {
+            resultArea.innerHTML = '<div class="empty-msg">请输入有效的斤数</div>';
+            return;
+        }
+
+        const jin = parseFloat(jinVal);
+        let htmlContent = '';
+        let currentCategory = '';
+
+        // 核心计算公式：当前斤数 / 5 * 基础用量
+        baseData.forEach(item => {
+            // 如果是新的分类，就插入一个分类标题
+            if (item.category !== currentCategory) {
+                currentCategory = item.category;
+                htmlContent += `<div class="category-title">${currentCategory}</div>`;
+            }
+
+            const totalAmount = (jin / 5 * item.amount).toFixed(1); 
+            const displayAmount = totalAmount.endsWith('.0') ? totalAmount.slice(0, -2) : totalAmount;
+            
+            htmlContent += `
+                <div class="result-item">
+                    ${item.name} <span class="val">${displayAmount} ${item.unit}</span>
+                </div>
+            `;
+        });
+
+        resultArea.innerHTML = htmlContent;
+    }
+
+    document.getElementById("jinInput").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            calculate();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+

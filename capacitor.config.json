@@ -1,0 +1,8 @@
+{
+  "appId": "com.myapp.html",
+  "appName": "鸡爪调料计算器",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
